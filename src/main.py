@@ -2,24 +2,31 @@ from champion_net import ChampionNet
 import torch
 import numpy as np
 import csv
-model = "../nn-reward-function/models/champion-model-06-04-2021-1617748751-ls128-lr0.0005-l20.05/model.pickle"
-results_files = ['../mcts/results/recs-nn-06-04-2021-1617755432.csv']
-#results_files = ['../mcts/results/recs-random-06-04-2021-1617755339.csv', '../mcts/results/recs-random-06-04-2021-1617736035.csv']
+
+config = {
+    "model":  "../nn-reward-function/models/champion-model-06-04-2021-1617757457-ls256-lr0.0005-l20.05/model.pickle",
+    "results_files": ['../mcts/results/real/recs-random-06-04-2021-1617771123.csv','../mcts/results/real/recs-random-06-04-2021-1617771151.csv','../mcts/results/real/recs-random-06-04-2021-1617771187.csv']
+}
+
+
+
 def main():
-    net = load_nn(model, 128)
+    net = load_nn(config["model"], 256)
     recs = []
-    for file in results_files:
+    for file in config["results_files"]:
         load_recommendations(recs, file)
         
     mean_win_rate = calculate_mean_win_rate(net, recs)
     print(mean_win_rate)
 
+#load the recommendations from each file and append it to res
 def load_recommendations(res, filename):
     with open(filename, 'r') as f:
         reader = csv.reader(f, delimiter =',')
         for line in reader:
             res.append(torch.Tensor(convert_to_state(line)))
         
+#convert to long state for the model
 def convert_to_state(combination):
     res = [0 for i in range(154)] #154 champions
     for i in range(5):
@@ -29,6 +36,7 @@ def convert_to_state(combination):
         res[int(combination[i])] = -1
     return res
 
+#compute the mean win rate all recs
 def calculate_mean_win_rate(net, recs):
     sum = 0
     for rec in recs:
